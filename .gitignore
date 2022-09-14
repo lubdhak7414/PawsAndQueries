@@ -1,0 +1,28 @@
+# Dependencies
+/vendor/
+composer.phar
+
+# Environment / local configuration
+.env
+.env.*
+config.local.php
+
+# Large media assets (kept out of version control)
+*.mp4
+*.mov
+
+# Logs
+*.log
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Working files / archives that are not part of the application
+*.docx
+*.drawio
+*.zip
+petshel(2).sql
