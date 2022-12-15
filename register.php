@@ -12,15 +12,16 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name          = $_POST['name'];
     $email         = $_POST['email'];
-    $password      = md5($_POST['password']);
+    $password      = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $contactNumber = $_POST['contactNumber'];
     $address       = $_POST['address'];
 
     try {
-        $pdo->query(
-            "INSERT INTO user (Name, Password, ContactNumber, Address, Email, Owned_pets)
-             VALUES ('$name', '$password', '$contactNumber', '$address', '$email', 0)"
+        $stmt = $pdo->prepare(
+            'INSERT INTO user (Name, Password, ContactNumber, Address, Email, Owned_pets)
+             VALUES (?, ?, ?, ?, ?, 0)'
         );
+        $stmt->execute([$name, $password, $contactNumber, $address, $email]);
         redirect('login.php');
     } catch (PDOException $e) {
         $error = 'Could not register: ' . $e->getMessage();

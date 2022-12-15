@@ -11,17 +11,21 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = $_POST['email'];
-    $password = md5($_POST['password']);
+    $password = $_POST['password'];
 
     // Try the admin table first, then the user table.
-    $admin = $pdo->query("SELECT * FROM admin WHERE Email = '$email' AND Password = '$password'")->fetch();
-    if ($admin) {
+    $stmt = $pdo->prepare('SELECT * FROM admin WHERE Email = ?');
+    $stmt->execute([$email]);
+    $admin = $stmt->fetch();
+    if ($admin && password_verify($password, $admin['Password'])) {
         $_SESSION['admin'] = $admin;
         redirect('admin_approval.php');
     }
 
-    $user = $pdo->query("SELECT * FROM user WHERE Email = '$email' AND Password = '$password'")->fetch();
-    if ($user) {
+    $stmt = $pdo->prepare('SELECT * FROM user WHERE Email = ?');
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+    if ($user && password_verify($password, $user['Password'])) {
         $_SESSION['user'] = $user;
         redirect('my_pets.php');
     }
