@@ -13,12 +13,14 @@ if (!isset($_SESSION['user'])) {
 
 $user_id = $_SESSION['user']['User_id'];
 
-$pets = $pdo->query("
+$stmt = $pdo->prepare('
     SELECT p.Pet_id, p.Name, p.Breed, p.Age, p.Type, p.Image_url, op.ApprovalDate
     FROM pet p
     INNER JOIN ownedpets op ON p.Pet_id = op.Pet_id
-    WHERE op.User_id = $user_id
-")->fetchAll();
+    WHERE op.User_id = ?
+');
+$stmt->execute([$user_id]);
+$pets = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">

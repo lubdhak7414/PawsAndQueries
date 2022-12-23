@@ -19,35 +19,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $petId       = $_POST['pet_id'];
     $reportDate  = date('Y-m-d');
 
-    $alreadyLost = $pdo->query("
+    $stmt = $pdo->prepare("
         SELECT 1 FROM lostandfound lf
         JOIN reports r ON lf.Report_id = r.Report_id
-        WHERE r.Pet_id = $petId AND lf.Status = 'Lost'
-    ")->fetch();
+        WHERE r.Pet_id = ? AND lf.Status = 'Lost'
+    ");
+    $stmt->execute([$petId]);
+    $alreadyLost = $stmt->fetch();
 
-    $ownsPet = $pdo->query("SELECT 1 FROM ownedpets WHERE Pet_id = $petId AND User_id = $userId")->fetch();
+    $stmt = $pdo->prepare('SELECT 1 FROM ownedpets WHERE Pet_id = ? AND User_id = ?');
+    $stmt->execute([$petId, $userId]);
+    $ownsPet = $stmt->fetch();
 
     if ($alreadyLost) {
         $message = '<div class="alert alert-warning">This pet is already registered as lost.</div>';
     } elseif (!$ownsPet) {
         $message = '<div class="alert alert-danger">That pet is not in your adopted pet list.</div>';
     } else {
-        $pdo->query("INSERT INTO lostandfound (Status, ReportDate, Description) VALUES ('Lost', '$reportDate', '$description')");
+        $pdo->prepare('INSERT INTO lostandfound (Status, ReportDate, Description) VALUES (?, ?, ?)')
+            ->execute(['Lost', $reportDate, $description]);
         $reportId = $pdo->lastInsertId();
-        $pdo->query("INSERT INTO reports (User_id, Report_id, Pet_id) VALUES ($userId, $reportId, $petId)");
+        $pdo->prepare('INSERT INTO reports (User_id, Report_id, Pet_id) VALUES (?, ?, ?)')
+            ->execute([$userId, $reportId, $petId]);
         $message = '<div class="alert alert-success">Report submitted successfully.</div>';
     }
 }
 
 // Pets the user owns that are not already flagged as lost.
-$pets = $pdo->query("
+$stmt = $pdo->prepare("
     SELECT p.Pet_id, p.Name
     FROM ownedpets op
     JOIN pet p ON op.Pet_id = p.Pet_id
     LEFT JOIN reports r ON p.Pet_id = r.Pet_id
     LEFT JOIN lostandfound lf ON r.Report_id = lf.Report_id AND lf.Status = 'Lost'
-    WHERE op.User_id = $userId AND lf.Report_id IS NULL
-")->fetchAll();
+    WHERE op.User_id = ? AND lf.Report_id IS NULL
+");
+$stmt->execute([$userId]);
+$pets = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">

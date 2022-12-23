@@ -21,19 +21,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_to_shelter'])) {
     $shelter_id = $_POST['shelter_id'];
     $pet_id     = $_POST['pet_id'];
 
-    $owns = $pdo->query("SELECT * FROM ownedpets WHERE Pet_id = $pet_id AND User_id = $user_id")->fetch();
+    $stmt = $pdo->prepare('SELECT * FROM ownedpets WHERE Pet_id = ? AND User_id = ?');
+    $stmt->execute([$pet_id, $user_id]);
+    $owns = $stmt->fetch();
+
+    $stmt = $pdo->prepare('SELECT * FROM shelters WHERE Pet_id = ?');
+    $stmt->execute([$pet_id]);
+    $alreadySheltered = $stmt->fetch();
 
     if (!$owns) {
         $_SESSION['message']['error'] = "Pet ID $pet_id is not owned by you.";
-    } elseif ($pdo->query("SELECT * FROM shelters WHERE Pet_id = $pet_id")->fetch()) {
+    } elseif ($alreadySheltered) {
         $_SESSION['message']['error'] = 'Pet already in a shelter.';
     } else {
-        $pet_type = $pdo->query("SELECT Type FROM pet WHERE Pet_id = $pet_id")->fetchColumn();
-        $shelter  = $pdo->query("SELECT ShelterSeat, ShelterType FROM petshelter WHERE Listing_id = $shelter_id")->fetch();
+        $stmt = $pdo->prepare('SELECT Type FROM pet WHERE Pet_id = ?');
+        $stmt->execute([$pet_id]);
+        $pet_type = $stmt->fetchColumn();
+
+        $stmt = $pdo->prepare('SELECT ShelterSeat, ShelterType FROM petshelter WHERE Listing_id = ?');
+        $stmt->execute([$shelter_id]);
+        $shelter = $stmt->fetch();
 
         if ($shelter && $shelter['ShelterSeat'] > 0 && $shelter['ShelterType'] === $pet_type) {
-            $pdo->query("INSERT INTO shelters (Listing_id, Pet_id) VALUES ($shelter_id, $pet_id)");
-            $pdo->query("UPDATE petshelter SET ShelterSeat = ShelterSeat - 1 WHERE Listing_id = $shelter_id");
+            $pdo->prepare('INSERT INTO shelters (Listing_id, Pet_id) VALUES (?, ?)')->execute([$shelter_id, $pet_id]);
+            $pdo->prepare('UPDATE petshelter SET ShelterSeat = ShelterSeat - 1 WHERE Listing_id = ?')->execute([$shelter_id]);
             $_SESSION['message']['success'] = 'Pet successfully added to the shelter.';
         } else {
             $_SESSION['message']['error'] = 'No seats available, or the shelter type does not match the pet type.';
@@ -45,25 +56,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_to_shelter'])) {
 
 // Handle "get a pet back from a shelter".
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    $pet_id     = $_POST['pet_id'];
-    $shelter_id = $pdo->query("SELECT Listing_id FROM shelters WHERE Pet_id = $pet_id")->fetchColumn();
+    $pet_id = $_POST['pet_id'];
 
-    $pdo->query("DELETE FROM shelters WHERE Pet_id = $pet_id AND Listing_id = $shelter_id");
-    $pdo->query("UPDATE petshelter SET ShelterSeat = ShelterSeat + 1 WHERE Listing_id = $shelter_id");
+    $stmt = $pdo->prepare('SELECT Listing_id FROM shelters WHERE Pet_id = ?');
+    $stmt->execute([$pet_id]);
+    $shelter_id = $stmt->fetchColumn();
+
+    $pdo->prepare('DELETE FROM shelters WHERE Pet_id = ? AND Listing_id = ?')->execute([$pet_id, $shelter_id]);
+    $pdo->prepare('UPDATE petshelter SET ShelterSeat = ShelterSeat + 1 WHERE Listing_id = ?')->execute([$shelter_id]);
     $_SESSION['message']['success'] = 'Pet removed from the shelter.';
 
     redirect($_SERVER['PHP_SELF']);
 }
 
-$shelters  = $pdo->query("SELECT * FROM petshelter")->fetchAll();
-$ownedPets = $pdo->query("SELECT p.Pet_id, p.Name FROM ownedpets op JOIN pet p ON op.Pet_id = p.Pet_id WHERE op.User_id = $user_id")->fetchAll();
-$inShelter = $pdo->query("
+$shelters = $pdo->query('SELECT * FROM petshelter')->fetchAll();
+
+$stmt = $pdo->prepare('SELECT p.Pet_id, p.Name FROM ownedpets op JOIN pet p ON op.Pet_id = p.Pet_id WHERE op.User_id = ?');
+$stmt->execute([$user_id]);
+$ownedPets = $stmt->fetchAll();
+
+$stmt = $pdo->prepare('
     SELECT p.Pet_id, p.Name, s.Listing_id AS Shelter_id
     FROM ownedpets op
     JOIN pet p ON op.Pet_id = p.Pet_id
     JOIN shelters s ON s.Pet_id = p.Pet_id
-    WHERE op.User_id = $user_id
-")->fetchAll();
+    WHERE op.User_id = ?
+');
+$stmt->execute([$user_id]);
+$inShelter = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">

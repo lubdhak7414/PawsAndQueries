@@ -17,12 +17,14 @@ $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $petId = $_POST['pet_id'];
 
-    $report = $pdo->query("SELECT Report_id FROM reports WHERE Pet_id = $petId AND User_id = $userId")->fetch();
+    $stmt = $pdo->prepare('SELECT Report_id FROM reports WHERE Pet_id = ? AND User_id = ?');
+    $stmt->execute([$petId, $userId]);
+    $report = $stmt->fetch();
 
     if ($report) {
         $reportId = $report['Report_id'];
-        $pdo->query("UPDATE lostandfound SET Status = 'Found' WHERE Report_id = $reportId");
-        $pdo->query("DELETE FROM reports WHERE Report_id = $reportId");
+        $pdo->prepare("UPDATE lostandfound SET Status = 'Found' WHERE Report_id = ?")->execute([$reportId]);
+        $pdo->prepare('DELETE FROM reports WHERE Report_id = ?')->execute([$reportId]);
         $message = '<div class="alert alert-success">The pet has been marked as found and the report closed.</div>';
     } else {
         $message = '<div class="alert alert-danger">No matching lost report was found for that pet.</div>';
@@ -30,13 +32,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // The user's pets that are currently flagged as lost.
-$pets = $pdo->query("
+$stmt = $pdo->prepare("
     SELECT p.Pet_id, p.Name
     FROM lostandfound lf
     JOIN reports r ON lf.Report_id = r.Report_id
     JOIN pet p ON r.Pet_id = p.Pet_id
-    WHERE r.User_id = $userId AND lf.Status = 'Lost'
-")->fetchAll();
+    WHERE r.User_id = ? AND lf.Status = 'Lost'
+");
+$stmt->execute([$userId]);
+$pets = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">

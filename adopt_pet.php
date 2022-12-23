@@ -19,10 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $applicationDate = date('Y-m-d');
 
     try {
-        $pdo->query(
-            "INSERT INTO adoptionapplication (ApplicationDate, User_id, Pet_id, Status)
-             VALUES ('$applicationDate', $user_id, $pet_id, 'Pending')"
+        $stmt = $pdo->prepare(
+            'INSERT INTO adoptionapplication (ApplicationDate, User_id, Pet_id, Status)
+             VALUES (?, ?, ?, ?)'
         );
+        $stmt->execute([$applicationDate, $user_id, $pet_id, 'Pending']);
         $notice = 'Application submitted successfully.';
     } catch (PDOException $e) {
         $notice = 'Error: ' . $e->getMessage();

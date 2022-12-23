@@ -16,8 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['retrieve_pet'])) {
     $pet_id     = $_POST['pet_id'];
     $shelter_id = $_POST['shelter_id'];
 
-    $pdo->query("DELETE FROM shelters WHERE Pet_id = $pet_id");
-    $pdo->query("UPDATE petshelter SET ShelterSeat = ShelterSeat + 1 WHERE Listing_id = $shelter_id");
+    $pdo->prepare('DELETE FROM shelters WHERE Pet_id = ?')->execute([$pet_id]);
+    $pdo->prepare('UPDATE petshelter SET ShelterSeat = ShelterSeat + 1 WHERE Listing_id = ?')->execute([$shelter_id]);
     $_SESSION['message'] = 'Pet successfully retrieved from the shelter.';
 
     redirect($_SERVER['PHP_SELF']);

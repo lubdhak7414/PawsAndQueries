@@ -26,14 +26,18 @@ if ($new_status === null) {
 
 // On approval, record ownership and mark the pet as adopted.
 if ($action === 'approve') {
-    $app     = $pdo->query("SELECT User_id, Pet_id FROM adoptionapplication WHERE Application_id = $application_id")->fetch();
+    $stmt = $pdo->prepare('SELECT User_id, Pet_id FROM adoptionapplication WHERE Application_id = ?');
+    $stmt->execute([$application_id]);
+    $app     = $stmt->fetch();
     $user_id = $app['User_id'];
     $pet_id  = $app['Pet_id'];
 
-    $pdo->query("INSERT INTO ownedpets (User_id, Pet_id, ApprovalDate) VALUES ($user_id, $pet_id, CURDATE())");
-    $pdo->query("UPDATE pet SET AdoptionStatus = 1 WHERE Pet_id = $pet_id");
+    $pdo->prepare('INSERT INTO ownedpets (User_id, Pet_id, ApprovalDate) VALUES (?, ?, CURDATE())')
+        ->execute([$user_id, $pet_id]);
+    $pdo->prepare('UPDATE pet SET AdoptionStatus = 1 WHERE Pet_id = ?')->execute([$pet_id]);
 }
 
-$pdo->query("UPDATE adoptionapplication SET Status = '$new_status' WHERE Application_id = $application_id");
+$pdo->prepare('UPDATE adoptionapplication SET Status = ? WHERE Application_id = ?')
+    ->execute([$new_status, $application_id]);
 
 redirect('admin_approval.php');
