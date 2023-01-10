@@ -1,0 +1,65 @@
+/* ===========================================================================
+   PawsAndQueries — small custom layer on top of Bootstrap
+   =========================================================================== */
+
+:root {
+    --pq-accent: #009b77;
+    --pq-dark: #2e3236;
+}
+
+body {
+    background-color: #f6f7f9;
+}
+
+/* Landing hero ----------------------------------------------------------- */
+.hero {
+    background: linear-gradient(135deg, var(--pq-dark) 0%, var(--pq-accent) 100%);
+    color: #fff;
+    border-radius: 1rem;
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.hero .btn-outline-light {
+    border-width: 2px;
+}
+
+/* Pet cards -------------------------------------------------------------- */
+.pet-card {
+    border: none;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pet-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.12);
+}
+
+.pet-card .card-img-top {
+    height: 220px;
+    object-fit: cover;
+}
+
+.pet-card .card-title {
+    font-weight: 600;
+}
+
+/* Buttons ---------------------------------------------------------------- */
+.btn-adopt {
+    background-color: var(--pq-dark);
+    color: #fff;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+.btn-adopt:hover {
+    background-color: var(--pq-accent);
+    color: #fff;
+}
+
+/* Tables ----------------------------------------------------------------- */
+.table thead th {
+    white-space: nowrap;
+}
