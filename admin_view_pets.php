@@ -35,6 +35,7 @@ $pets = $pdo->query("
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Available Pets — Admin — PawsAndQueries</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-light">
 <?php include 'admin_header.php'; ?>
@@ -44,10 +45,10 @@ $pets = $pdo->query("
     <div class="row">
         <?php foreach ($pets as $pet): ?>
             <div class="col-md-4 mb-4">
-                <div class="card shadow-sm h-100">
-                    <img src="http://localhost/pet3<?= e($pet['Image_url']) ?>"
+                <div class="card pet-card shadow-sm h-100">
+                    <img src=".<?= e($pet['Image_url']) ?>"
                          alt="Picture of <?= e($pet['Name']) ?>"
-                         class="card-img-top" style="height: 200px; object-fit: cover;">
+                         class="card-img-top">
                     <div class="card-body text-center">
                         <h4 class="card-title mb-3"><?= e($pet['Name']) ?></h4>
                         <p class="card-text mb-1"><strong>Type:</strong> <?= e($pet['Type']) ?></p>

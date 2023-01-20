@@ -29,6 +29,7 @@ $pets = $stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Adopted Pets — PawsAndQueries</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-light">
 <?php include 'user_header.php'; ?>
@@ -40,10 +41,10 @@ $pets = $stmt->fetchAll();
         <?php if (count($pets) > 0): ?>
             <?php foreach ($pets as $pet): ?>
                 <div class="col-md-4 mb-4">
-                    <div class="card shadow-sm h-100">
-                        <img src="http://localhost/pet3<?= e($pet['Image_url']) ?>"
+                    <div class="card pet-card shadow-sm h-100">
+                        <img src=".<?= e($pet['Image_url']) ?>"
                              alt="Picture of <?= e($pet['Name']) ?>"
-                             class="card-img-top" style="height: 200px; object-fit: cover;">
+                             class="card-img-top">
                         <div class="card-body">
                             <h4 class="card-title"><?= e($pet['Name']) ?></h4>
                             <h6 class="card-subtitle mb-2 text-muted">Pet ID: <?= e((string) $pet['Pet_id']) ?></h6>
