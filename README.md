@@ -109,8 +109,22 @@ php -S localhost:8000
 Then open <http://localhost:8000> in your browser.
 
 > **Configuration:** database credentials live in [`config.php`](config.php). The defaults
-> (`root` / no password / `localhost`) match a stock XAMPP install. For anything beyond
-> local development, copy it to `config.local.php` (git-ignored) and override the values.
+> (`root` / no password / `localhost`) match a stock XAMPP install, but `config.php` also
+> reads the `DB_HOST` / `DB_NAME` / `DB_USER` / `DB_PASS` environment variables when present.
+> For anything beyond local development, set those vars or copy `config.php` to
+> `config.local.php` (git-ignored) and override the values.
+
+### Run with Docker
+
+If you have Docker installed, the whole stack (PHP + MySQL, schema auto-imported) comes up
+with one command — no XAMPP needed:
+
+```bash
+docker compose up --build
+```
+
+Then open <http://localhost:8080>. The database is created and seeded from `database.sql`
+on first run.
 
 ---
 

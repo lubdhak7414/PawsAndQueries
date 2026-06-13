@@ -1,0 +1,34 @@
+# One-command local environment for PawsAndQueries.
+#   docker compose up --build   ->   http://localhost:8080
+#
+# The database is created and seeded automatically from database.sql on first run.
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_NAME: petshel
+      DB_USER: petuser
+      DB_PASS: petpass
+    depends_on:
+      - db
+    volumes:
+      - ./:/var/www/html
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: petshel
+      MYSQL_USER: petuser
+      MYSQL_PASSWORD: petpass
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database.sql:/docker-entrypoint-initdb.d/01-database.sql:ro
+      - dbdata:/var/lib/mysql
+
+volumes:
+  dbdata:
