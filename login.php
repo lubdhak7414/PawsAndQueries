@@ -18,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute([$email]);
     $admin = $stmt->fetch();
     if ($admin && password_verify($password, $admin['Password'])) {
+        session_regenerate_id(true);
         $_SESSION['admin'] = $admin;
         redirect('admin_approval.php');
     }
@@ -26,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute([$email]);
     $user = $stmt->fetch();
     if ($user && password_verify($password, $user['Password'])) {
+        session_regenerate_id(true);
         $_SESSION['user'] = $user;
         redirect('my_pets.php');
     }
