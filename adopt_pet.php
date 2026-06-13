@@ -30,8 +30,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Optional search + type filter from the query string.
+$search = trim($_GET['q'] ?? '');
+$type   = trim($_GET['type'] ?? '');
+
 // Pets that are still available and have no pending application against them.
-$pets = $pdo->query("
+$conditions = [
+    'p.AdoptionStatus = 0',
+    "(latest.Status IS NULL OR latest.Status <> 'Pending')",
+];
+$params = [];
+
+if ($search !== '') {
+    $conditions[] = 'p.Name LIKE ?';
+    $params[]     = '%' . $search . '%';
+}
+if ($type !== '') {
+    $conditions[] = 'p.Type = ?';
+    $params[]     = $type;
+}
+
+$sql = '
     SELECT DISTINCT p.Pet_id, p.Name, p.Type, p.Breed, p.Age, p.Image_url,
            latest.Status AS Last_Status
     FROM pet p
@@ -44,9 +63,16 @@ $pets = $pdo->query("
             WHERE Pet_id = aa.Pet_id
         )
     ) latest ON p.Pet_id = latest.Pet_id
-    WHERE p.AdoptionStatus = 0
-      AND (latest.Status IS NULL OR latest.Status <> 'Pending')
-")->fetchAll();
+    WHERE ' . implode(' AND ', $conditions) . '
+    ORDER BY p.Name';
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$pets = $stmt->fetchAll();
+
+// Distinct pet types, for the filter dropdown.
+$types = $pdo->query('SELECT DISTINCT Type FROM pet WHERE Type IS NOT NULL ORDER BY Type')
+    ->fetchAll(PDO::FETCH_COLUMN);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -69,6 +95,29 @@ $pets = $pdo->query("
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>
+
+    <form class="row g-2 mb-4" method="GET">
+        <div class="col-sm-6 col-md-5">
+            <input type="text" name="q" value="<?= e($search) ?>" class="form-control"
+                   placeholder="Search by name…">
+        </div>
+        <div class="col-sm-4 col-md-3">
+            <select name="type" class="form-select">
+                <option value="">All types</option>
+                <?php foreach ($types as $t): ?>
+                    <option value="<?= e($t) ?>"<?= $type === $t ? ' selected' : '' ?>><?= e($t) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-sm-2 col-md-2 d-grid">
+            <button type="submit" class="btn btn-dark">Filter</button>
+        </div>
+        <?php if ($search !== '' || $type !== ''): ?>
+            <div class="col-sm-12 col-md-2 d-grid">
+                <a href="adopt_pet.php" class="btn btn-outline-secondary">Clear</a>
+            </div>
+        <?php endif; ?>
+    </form>
 
     <div class="row">
         <?php foreach ($pets as $pet): ?>
