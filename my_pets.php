@@ -44,7 +44,8 @@ $pets = $stmt->fetchAll();
                     <div class="card pet-card shadow-sm h-100">
                         <img src=".<?= e($pet['Image_url']) ?>"
                              alt="Picture of <?= e($pet['Name']) ?>"
-                             class="card-img-top">
+                             class="card-img-top"
+                             onerror="this.onerror=null; this.src='images/placeholder.svg';">
                         <div class="card-body">
                             <h4 class="card-title"><?= e($pet['Name']) ?></h4>
                             <h6 class="card-subtitle mb-2 text-muted">Pet ID: <?= e((string) $pet['Pet_id']) ?></h6>

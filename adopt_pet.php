@@ -125,7 +125,8 @@ $types = $pdo->query('SELECT DISTINCT Type FROM pet WHERE Type IS NOT NULL ORDER
                 <div class="card pet-card shadow-sm h-100">
                     <img src=".<?= e($pet['Image_url']) ?>"
                          alt="Picture of <?= e($pet['Name']) ?>"
-                         class="card-img-top">
+                         class="card-img-top"
+                         onerror="this.onerror=null; this.src='images/placeholder.svg';">
                     <div class="card-body text-center">
                         <h4 class="card-title mb-3"><?= e($pet['Name']) ?></h4>
                         <p class="card-text mb-1"><strong>Type:</strong> <?= e($pet['Type']) ?></p>
